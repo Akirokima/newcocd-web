@@ -1,0 +1,64 @@
+name: Publicar Bitácora desde Notion
+
+# SOLO manual. No hay disparo programado: la Bitácora se publica cuando
+# Andrés lo decide, nunca sola.
+#
+#   GitHub -> pestaña Actions -> "Publicar Bitácora desde Notion" -> Run workflow
+#
+# Escribe markdown en el repositorio; NO construye el sitio. Si Notion falla,
+# el sitio sigue compilando con el último contenido sincronizado.
+on:
+  workflow_dispatch:
+    inputs:
+      estados:
+        description: 'Estados de Notion que se publican (separados por comas)'
+        required: false
+        default: 'Borrador,LIsta para publicar,Publicada'
+      simulacion:
+        description: 'Simular sin escribir nada (para ver qué entraría)'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publicar-bitacora
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Leer entradas de Notion
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_ESTADOS: ${{ inputs.estados }}
+        run: |
+          if [ "${{ inputs.simulacion }}" = "true" ]; then
+            node scripts/sync-notion.mjs --dry-run
+          else
+            node scripts/sync-notion.mjs
+          fi
+
+      - name: Confirmar cambios
+        if: ${{ inputs.simulacion != true }}
+        run: |
+          if [ -z "$(git status --porcelain src/content/bitacora)" ]; then
+            echo "Sin cambios: la Bitácora ya estaba al día."
+            exit 0
+          fi
+          git config user.name  "notion-sync"
+          git config user.email "info@newcocd.com"
+          git add src/content/bitacora
+          git commit -m "Bitácora: publicación desde Notion"
+          git push
+          echo "Publicado. Cambios:"
+          git show --stat --oneline HEAD
