@@ -21,6 +21,10 @@ El del medio es el que hace que la web cambie. **Sincronizar sin construir no
 publica nada**: el markdown estaría al día y la página seguiría mostrando lo
 anterior.
 
+**El orden importa:** marcar en Notion va **después** del push. Si se marcara
+antes y el push fallara, Notion diría "Publicada" y la web no tendría la
+entrada.
+
 ## Puesta en marcha (una sola vez)
 
 1. **Crear la integración en Notion**
@@ -32,12 +36,17 @@ anterior.
 
 2. **Dar acceso a la base**
    Abre la base **Bitácora** en Notion → menú `···` (arriba a la derecha) →
-   *Connections* / *Conexiones* → *Add connections* → elige `newcocd-web`.
+   *Connections* → *Add connections* → elige `newcocd-web`.
    Sin este paso la integración no ve nada, aunque el token sea correcto.
 
-3. **Guardar el token en GitHub**
-   Repositorio → *Settings* → *Secrets and variables* → *Actions* →
-   *New repository secret*. Nombre: `NOTION_TOKEN`. Valor: el secreto del paso 1.
+3. **Dejar el token donde haga falta**, según cómo vayas a publicar:
+
+   - **Para la vía Terminal** (la habitual): en `~/.zshrc`, línea
+     `export NOTION_TOKEN=ntn_xxxxx`. Abre una Terminal nueva después.
+   - **Para la vía GitHub**: repositorio → *Settings* → *Secrets and variables*
+     → *Actions* → *New repository secret*. Nombre: `NOTION_TOKEN`.
+
+   Puedes hacer las dos: son independientes y no estorban entre sí.
 
 4. **Probar**
    Pestaña *Actions* → *Publicar Bitácora desde Notion* → *Run workflow*,
@@ -45,28 +54,25 @@ anterior.
 
 ## Cómo se publica
 
-**No hay publicación automática.** La Bitácora se actualiza únicamente cuando
-tú lo lanzas. Tres formas, elige la que te venga:
+**No hay publicación automática.** No hay cron ni webhooks: la Bitácora se
+actualiza únicamente cuando tú la lanzas. Dos vías, y hacen exactamente lo
+mismo.
 
-### 1. Desde GitHub, con un botón (lo más cómodo)
+### 1. Desde tu Mac, con Claude (vía habitual)
 
-Repositorio → pestaña **Actions** → *Publicar Bitácora desde Notion* →
-**Run workflow**. Funciona igual desde la app de GitHub en el móvil.
+Terminal → `claude` → *"publica la bitácora"*. La skill `publicar-bitacora`
+encadena los cinco pasos, te enseña el dry-run antes de tocar nada y respeta el
+orden (publicar y después marcar).
 
-Antes de publicar de verdad puedes marcar **simulación**: ejecuta el proceso
-y te enseña en el registro qué entradas entrarían, sin tocar nada.
-
-### 2. Desde Terminal, en tu Mac
+A mano, si prefieres verlo pasar:
 
 ```bash
 cd "/Users/arm/Documents/Claude/Trabajos/Web NewCo/newco-web"
-export NOTION_TOKEN=ntn_xxxxx          # el token de la integración
 
 node scripts/sync-notion.mjs --dry-run # 1) ver qué entraría
 node scripts/sync-notion.mjs           # 2) escribir el markdown
 node scripts/build-bitacora.mjs        # 3) regenerar ideas.html
 
-rm -f .git/*.lock
 git add src/content/bitacora ideas.html
 git commit -m "Bitacora: nuevas entradas"
 git push                               # 4) publicar
@@ -74,22 +80,22 @@ git push                               # 4) publicar
 node scripts/marcar-publicadas.mjs     # 5) marcar en Notion, ya publicado
 ```
 
-Para no repetir el `export` cada vez, guarda el token en tu perfil
-(`~/.zshrc`): `export NOTION_TOKEN=ntn_xxxxx`.
+### 2. Desde GitHub, con un botón (sin depender de ningún ordenador)
 
-**El orden importa:** marcar en Notion va **después** del push. Si se marcara
-antes y el push fallara, Notion diría "Publicada" y la web no tendría la
-entrada.
+Repositorio → pestaña **Actions** → *Publicar Bitácora desde Notion* →
+**Run workflow**. Funciona igual desde la app de GitHub en el móvil, y desde
+Claude en la web o en Cowork, que pueden leer Notion y decirte qué va a salir
+pero no tienen acceso al repositorio para publicar.
+
+Antes de publicar de verdad puedes marcar **simulación**: ejecuta el proceso y
+te enseña en el registro qué entradas entrarían, sin tocar nada.
+
+El workflow vive en `.github/workflows/publicar-bitacora.yml`. Si no aparece en
+la pestaña *Actions*, es que el fichero no está ahí.
 
 `.bitacora-sync.json` es un fichero de trabajo local (lleva los identificadores
 de las entradas pendientes de marcar). **No se sube al repositorio**: está en
 `.gitignore`.
-
-### 3. Con la skill de Claude
-
-La skill `publicar-bitacora` encadena los cinco pasos anteriores, te enseña
-qué entradas ha detectado antes de publicar y respeta el orden (publicar y
-después marcar).
 
 ## Cómo se genera la web
 
