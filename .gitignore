@@ -3,3 +3,7 @@ Thumbs.db
 node_modules/
 dist/
 .env
+
+# Manifiesto de la última sincronización con Notion: lleva identificadores
+# internos y el repositorio es público.
+.bitacora-sync.json
