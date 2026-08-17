@@ -344,7 +344,7 @@ let active=null,activeSub=null,hovered=null,hoveredSub=null,dragNode=null,pannin
 let camX=0,camY=0,camVX=0,camVY=0;
 
 /* ---------------------------- LAYOUT ---------------------------- */
-let ringCx=0,ringCy=0,ringR=0,ringCxT=0,ringCyT=0,ringRT=0,fitR=0,PSPREAD=0,graphCx=0,graphCy=0;
+let ringCx=0,ringCy=0,ringR=0,ringCxT=0,ringCyT=0,ringRT=0,fitR=0,PSPREAD=0,graphCx=0,graphCy=0,fitRX=0,fitRY=0;
 let safeTop=0,safeBot=0,safeL=0,safeR=0,MAXSEG=0,panelInset=0;
 const TWO=Math.PI*2;
 const measurePanel=()=>!active?0:(isMobile?$('panel').offsetHeight+12:$('panel').offsetWidth+16);
@@ -375,7 +375,15 @@ function layout(){
   ringRT=Math.max(58,Math.min(H*0.60,isMobile?W*0.72:W*0.54,(botLimit-topLimit)/2));
   // El GRAFO sí se queda dentro del área segura, con su propio radio.
   graphCx=ringCxT; graphCy=(safeTop+safeBot)/2;
-  fitR=Math.max(60,Math.min(ringRT*0.64,graphCy-safeTop-10,safeBot-graphCy-10,(safeR-safeL)/2-20));
+  if(isMobile){
+    // en vertical sobra alto y falta ancho: el grafo deja de encajarse en un
+    // círculo y pasa a una elipse. Es lo que da aire entre nodos en móvil.
+    fitRX=Math.max(60,Math.min((safeR-safeL)/2-24, ringRT*0.80));
+    fitRY=Math.max(60,Math.min(graphCy-safeTop-20, safeBot-graphCy-20, ringRT*1.25));
+  } else {
+    fitRX=fitRY=Math.max(60,Math.min(ringRT*0.64,graphCy-safeTop-10,safeBot-graphCy-10,(safeR-safeL)/2-20));
+  }
+  fitR=Math.min(fitRX,fitRY);
 
   byId.newco.bx=-1.02;byId.newco.by=-.34;byId.newco.tr=isMobile?22:27;
   byId.andres.bx=1.10;byId.andres.by=.76;byId.andres.tr=isMobile?18:22;
@@ -395,8 +403,8 @@ function layout(){
     n.lh=fs*1.24;
     const LN=nodeLines(n);
     n.labelW=Math.max.apply(null,LN.map(t=>ctx.measureText(t).width))*1.09;
-    n.halfW=n.labelW/2+(isMobile?7:10);
-    n.halfH=n.tr+(isMobile?13:16)+(LN.length-1)*n.lh;
+    n.halfW=n.labelW/2+(isMobile?11:10);
+    n.halfH=n.tr+(isMobile?18:16)+(LN.length-1)*n.lh;
   });
   EDGES.forEach(e=>{e.rest=Math.hypot(e.a.hx-e.b.hx,e.a.hy-e.b.hy);});
 }
@@ -404,9 +412,17 @@ function fitHomes(){
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
   NODES.forEach(n=>{x0=Math.min(x0,n.bx);x1=Math.max(x1,n.bx);y0=Math.min(y0,n.by);y1=Math.max(y1,n.by);});
   const cx0=(x0+x1)/2,cy0=(y0+y1)/2;
-  let maxD=0;NODES.forEach(n=>{maxD=Math.max(maxD,Math.hypot(n.bx-cx0,n.by-cy0));});
-  const s=Math.max(20,fitR-(isMobile?30:34))/Math.max(maxD,.001);
-  NODES.forEach(n=>{n.hx=ringCxT+(n.bx-cx0)*s;n.hy=ringCyT+(n.by-cy0)*s;});
+  if(isMobile){
+    let mx=0,my=0;
+    NODES.forEach(n=>{mx=Math.max(mx,Math.abs(n.bx-cx0));my=Math.max(my,Math.abs(n.by-cy0));});
+    const sx=Math.max(20,fitRX-30)/Math.max(mx,.001);
+    const sy=Math.max(20,fitRY-30)/Math.max(my,.001);
+    NODES.forEach(n=>{n.hx=graphCx+(n.bx-cx0)*sx;n.hy=graphCy+(n.by-cy0)*sy;});
+  } else {
+    let maxD=0;NODES.forEach(n=>{maxD=Math.max(maxD,Math.hypot(n.bx-cx0,n.by-cy0));});
+    const s=Math.max(20,fitR-34)/Math.max(maxD,.001);
+    NODES.forEach(n=>{n.hx=graphCx+(n.bx-cx0)*s;n.hy=graphCy+(n.by-cy0)*s;});
+  }
 }
 function resize(){
   DPR=Math.min(devicePixelRatio||1,(innerWidth<innerHeight)?3:2); /* el móvil suele ser 3x */ W=innerWidth;H=innerHeight;
@@ -628,7 +644,7 @@ function drawNodes(t){
 const K_HOME_SLOW=1.15;  // memoria de forma: vuelve al orden inicial, muy despacio
 
 function physics(dt){
-  const K_EDGE=26, K_REP=isMobile?6500:11000, K_SEP=isMobile?36:34;
+  const K_EDGE=26, K_REP=isMobile?8600:11000, K_SEP=isMobile?52:34;
   NODES.forEach(n=>{n.fx=0;n.fy=0;});
 
   for(let i=0;i<NODES.length;i++)for(let j=i+1;j<NODES.length;j++){
@@ -656,11 +672,10 @@ function physics(dt){
   /* contención: nadie se sale del anillo. Sustituye al retorno elástico
      como fuerza de orden — y como ringR/ringCx cambian al abrir el panel,
      el grafo se sigue apartando solo. */
-  const lim=fitR;
+  const rx=Math.max(40,fitRX-26), ry=Math.max(40,fitRY-26);
   NODES.forEach(n=>{
-    const dx=n.x-graphCx, dy=n.y-graphCy, d=Math.hypot(dx,dy);
-    const room=lim-(n.tr+22);
-    if(d>room){ const k=(d-room)*9; n.fx-=dx/d*k; n.fy-=dy/d*k; }
+    const nx=(n.x-graphCx)/rx, ny=(n.y-graphCy)/ry, dn=Math.hypot(nx,ny);
+    if(dn>1){ const k=(dn-1)*820; n.fx-=(nx/dn)*k; n.fy-=(ny/dn)*k; }
   });
 
   /* anclaje suavísimo del centro de masa: evita la deriva lenta */
