@@ -365,9 +365,12 @@ function layout(){
   // por detrás del hero. Es fondo y estado, no contenido.
   // En escritorio la nube no debe llegar a la franja del logo: el radio se
   // limita para que la cresta de las partículas quede por debajo de él.
-  const cloudReach=isMobile?48:(PSPREAD||64)+30;
-  const roomTop=ringCyT-(bb.bottom+(isMobile?12:20))-cloudReach;
-  ringRT=Math.max(58,Math.min(H*0.60,W*0.54,isMobile?1e9:roomTop));
+  const cloudReach=isMobile?46:(PSPREAD||64)+30;
+  // centro ligeramente por encima del medio: deja aire bajo el grafo
+  ringCyT=safeTop+(safeBot-safeTop)*0.455;
+  const roomTop=ringCyT-(bb.bottom+(isMobile?12:20))-cloudReach;      // no invade el logo
+  const roomBot=(safeBot-4)-ringCyT-cloudReach*0.60;                  // no invade el footer
+  ringRT=Math.max(58,Math.min(H*0.60,W*0.54,isMobile?1e9:roomTop,roomBot));
   // El GRAFO sí se queda dentro del área segura, con su propio radio.
   fitR=Math.max(60,Math.min(ringRT*0.64,(safeBot-safeTop)/2-20,(safeR-safeL)/2-20));
 
@@ -403,7 +406,7 @@ function fitHomes(){
   NODES.forEach(n=>{n.hx=ringCxT+(n.bx-cx0)*s;n.hy=ringCyT+(n.by-cy0)*s;});
 }
 function resize(){
-  DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  DPR=Math.min(devicePixelRatio||1,(innerWidth<innerHeight)?3:2);   // el móvil suele ser 3xW=innerWidth;H=innerHeight;
   cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';
   ctx.setTransform(DPR,0,0,DPR,0,0);const wasM=isMobile;layout();if(wasM!==isMobile||!PARTS.length)buildParticles();
   if(!ringR){ringR=ringRT;ringCx=ringCxT;ringCy=ringCyT;}
@@ -719,15 +722,21 @@ function shockAt(o,amp,col){
   let a=((nodeAngle(o)%TWO)+TWO)%TWO;
   shocks.push({at:(a/TWO)*SEGS,age:0,amp,col:col||{r:255,g:255,b:255}});
 }
-let ptr={x:0,y:0},down=false,moved=0;
+let ptr={x:0,y:0},down=false,moved=0,lastTouch=0;
 const getPt=e=>{const t=e.touches?e.touches[0]:e;return{x:t.clientX,y:t.clientY};};
 function onDown(e){
+  // iOS emite mousedown/mouseup sintéticos después de cada toque: sin esto,
+  // el segundo evento reabría y cerraba el panel al instante.
+  if(e.type==='touchstart') lastTouch=performance.now();
+  else if(performance.now()-lastTouch<700) return;
   const p=getPt(e);down=true;moved=0;ptr=p;
   const h=pick(p.x,p.y);
   if(h&&h.node){dragNode=h.node;hovered=h.node;}else if(!h){panning=true;}
   cv.classList.add('grabbing');
 }
 function onMove(e){
+  if(e.type==='touchmove') lastTouch=performance.now();
+  else if(performance.now()-lastTouch<700) return;
   const p=getPt(e);
   if(!down){
     if(!isMobile){const h=pick(p.x,p.y);hovered=h&&h.node?h.node:null;hoveredSub=h&&h.sub?h.sub:null;
@@ -741,7 +750,9 @@ function onMove(e){
     const lim=isMobile?80:140,d=Math.hypot(camX,camY);if(d>lim){camX*=lim/d;camY*=lim/d;}}
   ptr=p;
 }
-function onUp(){
+function onUp(e){
+  if(e&&e.type==='touchend') lastTouch=performance.now();
+  else if(!down&&performance.now()-lastTouch<700) return;
   if(down&&moved<6){
     const h=pick(ptr.x,ptr.y);
     if(h&&h.sub)openSub(h.sub);
