@@ -49,11 +49,30 @@ if (!pendientes.length) { console.log('Nada que marcar: la Bitácora ya estaba a
 
 const PUBLICADA = await nombreDePublicada();
 
+/* Lee el Estado actual de una entrada. Hace falta porque "Estado" es
+   multi_select y un PATCH lo sustituye entero: si mandáramos sólo
+   ["Publicada"] borraríamos las demás etiquetas que Andrés haya puesto
+   ("Archivada", por ejemplo). Se lee, se quita "Lista para publicar", se
+   añade "Publicada" y se devuelve el resto intacto. */
+async function estadoActual(id) {
+  const res = await fetch(`https://api.notion.com/v1/pages/${id}`, { headers: HEADERS });
+  if (!res.ok) return null;
+  const page = await res.json();
+  return page.properties?.Estado?.multi_select?.map(o => o.name) || [];
+}
+
 let ok = 0, fallos = 0;
 for (const e of pendientes) {
-  // "Estado" es multi_select: se sustituye por Publicada, de modo que
-  // "Lista para publicar" desaparece y la entrada no reentra en la próxima pasada.
-  const properties = { Estado: { multi_select: [{ name: PUBLICADA }] } };
+  const actual = await estadoActual(e.id);
+  if (actual === null) {
+    console.error(`  ✗ No se pudo leer el estado de "${e.titulo}": se deja sin marcar`);
+    fallos++; continue;
+  }
+
+  const conservadas = actual.filter(n => !normaliza(n).startsWith('lista para publicar')
+                                      && normaliza(n) !== 'publicada');
+  const nuevoEstado = [PUBLICADA, ...conservadas];
+  const properties = { Estado: { multi_select: nuevoEstado.map(name => ({ name })) } };
 
   // Si la tabla no tenía fecha, se escribe la que se usó al publicar.
   if (e.fechaAsignada && e.fecha) {
@@ -61,7 +80,8 @@ for (const e of pendientes) {
   }
 
   if (DRY) {
-    console.log(`  · (simulación) ${e.titulo}${e.fechaAsignada ? ` + fecha ${e.fecha}` : ''}`);
+    console.log(`  · (simulación) ${e.titulo}: [${actual.join(', ')}] → [${nuevoEstado.join(', ')}]`
+      + `${e.fechaAsignada ? ` + fecha ${e.fecha}` : ''}`);
     ok++; continue;
   }
 
@@ -70,7 +90,8 @@ for (const e of pendientes) {
   });
 
   if (res.ok) {
-    console.log(`  ✓ Publicada: ${e.titulo}${e.fechaAsignada ? `   (fecha asignada: ${e.fecha})` : ''}`);
+    console.log(`  ✓ Publicada: ${e.titulo}   [${nuevoEstado.join(', ')}]`
+      + `${e.fechaAsignada ? `   (fecha asignada: ${e.fecha})` : ''}`);
     ok++;
   } else {
     console.error(`  ✗ No se pudo marcar "${e.titulo}": ${res.status} ${await res.text()}`);

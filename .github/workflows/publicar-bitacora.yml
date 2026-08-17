@@ -5,8 +5,17 @@ name: Publicar Bitácora desde Notion
 #
 #   GitHub -> pestaña Actions -> "Publicar Bitácora desde Notion" -> Run workflow
 #
-# Lee Notion, escribe el markdown, regenera ideas.html y hace push. Marcar las
-# entradas como "Publicada" en Notion va DESPUÉS del push, nunca antes.
+# Esta es la vía de respaldo, la que funciona desde el móvil sin encender el
+# Mac. La vía habitual es la skill `publicar-bitacora` en Claude Code.
+#
+# Diferencia importante con la vía del Mac: aquí NO existe el vault de
+# Obsidian. El runner se genera los .md en una carpeta temporal suya, construye
+# ideas.html y sube sólo eso. La copia del vault se pone al día sola la próxima
+# vez que se publique desde el Mac.
+#
+# Marcar las entradas como "Publicada" en Notion va DESPUÉS del push, nunca
+# antes: si se marcara primero y el push fallara, Notion diría "Publicada" y la
+# web no tendría la entrada.
 on:
   workflow_dispatch:
     inputs:
@@ -27,6 +36,10 @@ concurrency:
   group: publicar-bitacora
   cancel-in-progress: false
 
+env:
+  # Carpeta temporal del runner que hace de sustituta del vault de Obsidian.
+  BITACORA_DIR: ${{ github.workspace }}/.bitacora-tmp
+
 jobs:
   publicar:
     runs-on: ubuntu-latest
@@ -42,6 +55,7 @@ jobs:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_ESTADOS: ${{ inputs.estados }}
         run: |
+          mkdir -p "$BITACORA_DIR"
           if [ "${{ inputs.simulacion }}" = "true" ]; then
             node scripts/sync-notion.mjs --dry-run
           else
@@ -57,22 +71,21 @@ jobs:
         id: push
         if: ${{ inputs.simulacion != true }}
         run: |
-          if [ -z "$(git status --porcelain src/content/bitacora ideas.html)" ]; then
+          if [ -z "$(git status --porcelain ideas.html)" ]; then
             echo "Sin cambios: la Bitácora ya estaba al día."
             echo "publicado=no" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name  "notion-sync"
           git config user.email "info@newcocd.com"
-          git add src/content/bitacora ideas.html
+          git add ideas.html
           git commit -m "Bitácora: publicación desde Notion"
           git push
           echo "publicado=si" >> "$GITHUB_OUTPUT"
           echo "Publicado. Cambios:"
           git show --stat --oneline HEAD
 
-      # Solo si el push ha terminado bien: si se marcara antes y el push
-      # fallara, Notion diría "Publicada" y la web no tendría la entrada.
+      # Solo si el push ha terminado bien.
       - name: Marcar como Publicada en Notion
         if: ${{ inputs.simulacion != true && steps.push.outputs.publicado == 'si' }}
         env:

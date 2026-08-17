@@ -7,3 +7,6 @@ dist/
 # Manifiesto de la última sincronización con Notion: lleva identificadores
 # internos y el repositorio es público.
 .bitacora-sync.json
+
+# Carpeta temporal que usa GitHub Actions en lugar del vault de Obsidian.
+.bitacora-tmp/

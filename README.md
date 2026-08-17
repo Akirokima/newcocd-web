@@ -4,20 +4,23 @@ Prototipo del rediseño de la web de **NewCo Capital y Desarrollo, S.L.**
 `index.html` es un único archivo autocontenido: tipografía Montserrat en woff2,
 logos vectoriales y bilingüe ES/EN embebidos. Sin dependencias ni build.
 
-`ideas.html` es la **Bitácora**, y esa sí se genera: el contenido se escribe en
-Notion y dos scripts lo convierten en la página. Todo el detalle está en
-[`NOTION.md`](NOTION.md).
+`ideas.html` es la **Bitácora**, y esa sí se genera. El contenido se escribe en
+Notion, un script lo convierte en markdown dentro del vault de Obsidian, y otro
+monta la página a partir de ese markdown. **Los `.md` no están en este
+repositorio**: aquí sólo vive el `ideas.html` ya generado, que es lo que sirve
+GitHub Pages. Todo el detalle está en [`NOTION.md`](NOTION.md).
 
 ## Publicar la Bitácora
 
-Dos vías, ambas manuales y equivalentes:
+Dos vías, ambas manuales:
 
-- **Desde el Mac:** Terminal → `claude` → *"publica la bitácora"*.
-- **Desde GitHub:** pestaña *Actions* → *Publicar Bitácora desde Notion* →
-  *Run workflow*. Funciona también desde el móvil.
+- **Desde el Mac** (habitual): Terminal → `claude` → *"publica la bitácora"*.
+  Es la única que escribe en el vault.
+- **Desde GitHub** (respaldo): pestaña *Actions* → *Publicar Bitácora desde
+  Notion* → *Run workflow*. Funciona también desde el móvil.
 
 Ver [`NOTION.md`](NOTION.md) para la puesta en marcha (integración de Notion,
-token y secreto del repositorio).
+token y secreto del repositorio) y para qué significa cada etiqueta de `Estado`.
 
 ## Publicar el sitio en GitHub Pages
 

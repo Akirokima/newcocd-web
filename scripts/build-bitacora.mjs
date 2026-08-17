@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * Genera ideas.html (la Bitácora) a partir de los markdown del repositorio.
+ * Genera ideas.html (la Bitácora) a partir de los markdown del vault.
  *
- * Fuente de verdad: src/content/bitacora/*.md  (los escribe sync-notion.mjs).
+ * Fuente de verdad: los .md de la carpeta Bitácora_web del vault de Obsidian
+ *                   (los escribe sync-notion.mjs). No están en el repositorio.
  * Plantilla:        scripts/bitacora.template.html  — el mismo ideas.html pero
  *                   con <!--ENTRADAS--> en lugar del contenido de <main>.
  *
@@ -20,7 +21,13 @@ import { fileURLToPath } from 'node:url';
 
 const AQUI      = dirname(fileURLToPath(import.meta.url));
 const RAIZ      = join(AQUI, '..');
-const CONTENIDO = process.env.CONTENT_DIR || join(RAIZ, 'src/content/bitacora');
+/* De dónde se leen las entradas. Por defecto, la carpeta del vault de
+   Obsidian: el repositorio ya no guarda los .md, sólo el ideas.html generado.
+   GitHub Actions pasa BITACORA_DIR apuntando a la carpeta temporal donde acaba
+   de dejarlos sync-notion.mjs. */
+const CONTENIDO = process.env.CONTENT_DIR
+  || process.env.BITACORA_DIR
+  || '/Users/arm/Library/CloudStorage/GoogleDrive-akirokima@gmail.com/My Drive/Obsidian Folder/Obsidian_ARM/Brain/brian/fuentes/Bitácora_web';   // ← ajustar si el vault se mueve
 const PLANTILLA = process.env.TEMPLATE || join(AQUI, 'bitacora.template.html');
 const SALIDA    = process.env.OUT_FILE || join(RAIZ, 'ideas.html');
 const CHECK     = process.argv.includes('--check');
