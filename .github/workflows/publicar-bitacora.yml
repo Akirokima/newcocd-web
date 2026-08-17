@@ -10,7 +10,7 @@ name: Publicar Bitácora desde Notion
 #
 # Diferencia importante con la vía del Mac: aquí NO existe el vault de
 # Obsidian. El runner se genera los .md en una carpeta temporal suya, construye
-# ideas.html y sube sólo eso. La copia del vault se pone al día sola la próxima
+# bitacora.html y sube sólo eso. La copia del vault se pone al día sola la próxima
 # vez que se publique desde el Mac.
 #
 # Marcar las entradas como "Publicada" en Notion va DESPUÉS del push, nunca
@@ -63,7 +63,7 @@ jobs:
           fi
 
       # Sin este paso el markdown estaría al día y la web seguiría igual.
-      - name: Regenerar ideas.html
+      - name: Regenerar bitacora.html
         if: ${{ inputs.simulacion != true }}
         run: node scripts/build-bitacora.mjs
 
@@ -71,14 +71,14 @@ jobs:
         id: push
         if: ${{ inputs.simulacion != true }}
         run: |
-          if [ -z "$(git status --porcelain ideas.html)" ]; then
+          if [ -z "$(git status --porcelain bitacora.html)" ]; then
             echo "Sin cambios: la Bitácora ya estaba al día."
             echo "publicado=no" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name  "notion-sync"
           git config user.email "info@newcocd.com"
-          git add ideas.html
+          git add bitacora.html
           git commit -m "Bitácora: publicación desde Notion"
           git push
           echo "publicado=si" >> "$GITHUB_OUTPUT"

@@ -3,7 +3,7 @@
 Tres sitios, cada uno con un papel:
 
 ```
-Notion            →   vault de Obsidian        →   ideas.html   →   web
+Notion            →   vault de Obsidian        →   bitacora.html   →   web
 (aquí se escribe)     (aquí vive el markdown)      (generado)       (GitHub Pages)
 ```
 
@@ -11,18 +11,18 @@ Notion            →   vault de Obsidian        →   ideas.html   →   web
   donde se redacta y donde se decide qué se publica.
 - **El vault** — `Brain/brian/fuentes/Bitácora_web/`. Un `.md` por entrada, con
   frontmatter para Obsidian. Ahí se lee y se busca.
-- **El repositorio** — **NO guarda los `.md`**. Sólo guarda `ideas.html`, que es
+- **El repositorio** — **NO guarda los `.md`**. Sólo guarda `bitacora.html`, que es
   lo que sirve GitHub Pages, más los scripts y la plantilla.
 
 Ese reparto importa: la web no se alimenta del markdown, se alimenta de
-`ideas.html`, que lleva las entradas incrustadas dentro.
+`bitacora.html`, que lleva las entradas incrustadas dentro.
 
 ## Los tres scripts
 
 | Script | Qué hace | Toca la red |
 |---|---|---|
 | `scripts/sync-notion.mjs` | Notion → `.md` en el vault | sí (lee Notion) |
-| `scripts/build-bitacora.mjs` | `.md` + plantilla → `ideas.html` | no |
+| `scripts/build-bitacora.mjs` | `.md` + plantilla → `bitacora.html` | no |
 | `scripts/marcar-publicadas.mjs` | marca *Publicada* en Notion tras el push | sí (escribe Notion) |
 
 El del medio es el que hace que la web cambie. **Sincronizar sin construir no
@@ -105,9 +105,9 @@ cd "/Users/arm/Documents/Claude/Trabajos/Web NewCo/newco-web"
 
 node scripts/sync-notion.mjs --dry-run # 1) ver qué entraría
 node scripts/sync-notion.mjs           # 2) escribir el markdown en el vault
-node scripts/build-bitacora.mjs        # 3) regenerar ideas.html
+node scripts/build-bitacora.mjs        # 3) regenerar bitacora.html
 
-git add ideas.html
+git add bitacora.html
 git commit -m "Bitacora: nuevas entradas"
 git push                               # 4) publicar
 
@@ -124,7 +124,7 @@ Claude en la web o en Cowork, que pueden leer Notion y decirte qué va a salir
 pero no tienen acceso al repositorio para publicar.
 
 El runner **no ve tu vault**: se genera los `.md` en una carpeta temporal suya
-(`.bitacora-tmp/`, ignorada por git), construye `ideas.html` y sube sólo eso.
+(`.bitacora-tmp/`, ignorada por git), construye `bitacora.html` y sube sólo eso.
 La copia del vault se pone al día sola la próxima vez que publiques desde el
 Mac. Nada se rompe; sólo va con retraso.
 
@@ -140,7 +140,7 @@ de las entradas pendientes de marcar). **No se sube al repositorio**: está en
 
 ## Cómo se genera la web
 
-`ideas.html` **no se edita a mano**: lo genera `scripts/build-bitacora.mjs` a
+`bitacora.html` **no se edita a mano**: lo genera `scripts/build-bitacora.mjs` a
 partir de dos cosas.
 
 - `scripts/bitacora.template.html` — la página completa (tipografía, logo, CSS
@@ -155,7 +155,7 @@ según la categoría: NewCo verde, TaskOol azul, Technetium morado, Personal
 hueso.
 
 ```bash
-node scripts/build-bitacora.mjs           # regenera ideas.html
+node scripts/build-bitacora.mjs           # regenera bitacora.html
 node scripts/build-bitacora.mjs --check   # no escribe; sale con 1 si está desfasado
 ```
 
@@ -183,7 +183,7 @@ notionId: "3bf5d0d5-…"
 tags: [bitacora, bitacora/newco]
 aliases: ["Grupo Coberio"]
 notion: "https://www.notion.so/3bf5d0d5…"
-web: "https://akirokima.github.io/newcocd-web/ideas.html#grupo-coberio"
+web: "https://akirokima.github.io/newcocd-web/bitacora.html#grupo-coberio"
 ---
 ```
 

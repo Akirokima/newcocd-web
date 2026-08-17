@@ -3,7 +3,7 @@
  * Sincroniza la Bitácora de Notion -> markdown en el vault de Obsidian.
  *
  * Notion es donde se escribe; el vault es donde vive el markdown; el
- * repositorio sólo guarda el ideas.html ya generado, que es lo que sirve la
+ * repositorio sólo guarda el bitacora.html ya generado, que es lo que sirve la
  * web. Los .md NO están en el repositorio.
  *
  * No forma parte del build: primero escribe los ficheros, después
@@ -26,7 +26,7 @@ const DB_ID   = process.env.NOTION_DB_ID || '3bf5d0d5-f0a5-804f-ab41-c3189166bc1
 /* Dónde se escribe el markdown.
    El destino normal es la carpeta del vault de Obsidian: ahí es donde Andrés
    lee y busca las entradas. El repositorio NO guarda los .md; sólo guarda
-   ideas.html, que es lo que sirve la web.
+   bitacora.html, que es lo que sirve la web.
    GitHub Actions no ve el vault, así que le pasa BITACORA_DIR apuntando a una
    carpeta temporal suya: genera, construye la página y la sube. La copia del
    vault se pone al día sola en la siguiente publicación desde el Mac. */
@@ -308,7 +308,7 @@ for (const p of entradas) {
     `tags: [${etiquetas.join(', ')}]`,
     `aliases: [${yaml(titulo)}]`,
     `notion: ${yaml(`https://www.notion.so/${p.id.replace(/-/g, '')}`)}`,
-    `web: ${yaml(`https://akirokima.github.io/newcocd-web/ideas.html#${slug}`)}`,
+    `web: ${yaml(`https://akirokima.github.io/newcocd-web/bitacora.html#${slug}`)}`,
     '---',
     '',
   ].filter(Boolean).join('\n');

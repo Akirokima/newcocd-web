@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Genera ideas.html (la Bitácora) a partir de los markdown del vault.
+ * Genera bitacora.html (la Bitácora) a partir de los markdown del vault.
  *
  * Fuente de verdad: los .md de la carpeta Bitácora_web del vault de Obsidian
  *                   (los escribe sync-notion.mjs). No están en el repositorio.
- * Plantilla:        scripts/bitacora.template.html  — el mismo ideas.html pero
+ * Plantilla:        scripts/bitacora.template.html  — el mismo bitacora.html pero
  *                   con <!--ENTRADAS--> en lugar del contenido de <main>.
  *
  * No toca Notion ni la red: es determinista y se puede ejecutar mil veces.
@@ -22,14 +22,14 @@ import { fileURLToPath } from 'node:url';
 const AQUI      = dirname(fileURLToPath(import.meta.url));
 const RAIZ      = join(AQUI, '..');
 /* De dónde se leen las entradas. Por defecto, la carpeta del vault de
-   Obsidian: el repositorio ya no guarda los .md, sólo el ideas.html generado.
+   Obsidian: el repositorio ya no guarda los .md, sólo el bitacora.html generado.
    GitHub Actions pasa BITACORA_DIR apuntando a la carpeta temporal donde acaba
    de dejarlos sync-notion.mjs. */
 const CONTENIDO = process.env.CONTENT_DIR
   || process.env.BITACORA_DIR
   || '/Users/arm/Library/CloudStorage/GoogleDrive-akirokima@gmail.com/My Drive/Obsidian Folder/Obsidian_ARM/Brain/brian/fuentes/Bitácora_web';   // ← ajustar si el vault se mueve
 const PLANTILLA = process.env.TEMPLATE || join(AQUI, 'bitacora.template.html');
-const SALIDA    = process.env.OUT_FILE || join(RAIZ, 'ideas.html');
+const SALIDA    = process.env.OUT_FILE || join(RAIZ, 'bitacora.html');
 const CHECK     = process.argv.includes('--check');
 
 const MARCADOR = '<!--ENTRADAS-->';
@@ -218,11 +218,11 @@ const previo = await readFile(SALIDA, 'utf8').catch(() => null);
 const cambia = previo !== html;
 
 if (CHECK) {
-  console.log(cambia ? 'ideas.html quedaría desactualizado: hay que regenerarlo.' : 'ideas.html está al día.');
+  console.log(cambia ? 'bitacora.html quedaría desactualizado: hay que regenerarlo.' : 'bitacora.html está al día.');
   process.exit(cambia ? 1 : 0);
 }
 
 await writeFile(SALIDA, html, 'utf8');
-console.log(`ideas.html regenerado: ${entradas.length} entradas, ${(Buffer.byteLength(html) / 1024).toFixed(1)} KB`
+console.log(`bitacora.html regenerado: ${entradas.length} entradas, ${(Buffer.byteLength(html) / 1024).toFixed(1)} KB`
   + (cambia ? '' : ' (sin cambios)'));
 for (const e of entradas) console.log(`  · ${e.fecha}  ${e.titulo}`);
