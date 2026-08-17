@@ -374,7 +374,10 @@ function layout(){
   ringCyT=(topLimit+botLimit)/2;
   ringRT=Math.max(58,Math.min(H*0.60,isMobile?W*0.72:W*0.54,(botLimit-topLimit)/2));
   // El GRAFO sí se queda dentro del área segura, con su propio radio.
-  graphCx=ringCxT; graphCy=(safeTop+safeBot)/2;
+  graphCx=ringCxT;
+  // el grafo comparte centro con el anillo en escritorio (concéntrico);
+  // en vertical se centra en el área útil, que es donde tiene sitio.
+  graphCy=isMobile?(safeTop+safeBot)/2:ringCyT;
   if(isMobile){
     // en vertical sobra alto y falta ancho: el grafo deja de encajarse en un
     // círculo y pasa a una elipse. Es lo que da aire entre nodos en móvil.
@@ -398,7 +401,7 @@ function layout(){
   // caja de colisión de cada nodo = su ETIQUETA, no su círculo
   NODES.forEach(n=>{
     const root=n.kind==='root';
-    const fs=root?(isMobile?9.5:11):(isMobile?8:9.5);
+    const fs=root?(isMobile?11:11):(isMobile?9.5:9.5);
     ctx.font=`700 ${fs}px Montserrat,system-ui,sans-serif`;
     n.lh=fs*1.24;
     const LN=nodeLines(n);
@@ -591,7 +594,7 @@ function drawSubs(){
       ctx.beginPath();ctx.arc(s.x,s.y,rr,0,7);ctx.fill();
       if(on){ctx.strokeStyle=rgba(n.lit,.5*s.a);ctx.lineWidth=1;
         ctx.beginPath();ctx.arc(s.x,s.y,rr+5,0,7);ctx.stroke();}
-      ctx.font=`700 ${isMobile?8:9}px Montserrat,system-ui,sans-serif`;
+      ctx.font=`700 ${isMobile?9:9}px Montserrat,system-ui,sans-serif`;
       ctx.textAlign='center';ctx.textBaseline='middle';
       ctx.fillStyle=`rgba(255,255,255,${(.38+lit*.55)*s.a})`;
       ctx.save();try{ctx.letterSpacing='0.08em';}catch(_){}
@@ -605,7 +608,7 @@ function drawNodes(t){
     const beat=reduced?0:Math.sin(t*n.beat*2.2+n.phase);
     const rr=n.r*(1+beat*(dormant?.035:.075)+lit*.20);
     const col=n.col2?lift({r:lerp(n.col.r,n.col2.r,.5+.5*beat),g:lerp(n.col.g,n.col2.g,.5+.5*beat),b:lerp(n.col.b,n.col2.b,.5+.5*beat)},.10):n.lit;
-    const halo=(dormant?.05:.16)*(.5+.5*beat)+lit*.26;
+    const halo=(dormant?.05:(isMobile?.11:.16))*(.5+.5*beat)+lit*.26;
     if(halo>.01){
       const gr=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,rr*5.5);
       gr.addColorStop(0,rgba(col,halo));gr.addColorStop(1,rgba(col,0));
@@ -620,10 +623,10 @@ function drawNodes(t){
       ctx.beginPath();ctx.arc(n.x,n.y,rr,0,7);ctx.fill();
       if(root){ctx.fillStyle='rgba(8,8,10,.94)';ctx.beginPath();ctx.arc(n.x,n.y,Math.max(1,rr-(isMobile?7:8)),0,7);ctx.fill();}
     }
-    const fs=root?(isMobile?9.5:11):(isMobile?8:9.5);
+    const fs=root?(isMobile?11:11):(isMobile?9.5:9.5);
     ctx.font=`700 ${fs}px Montserrat,system-ui,sans-serif`;
     ctx.textAlign='center';ctx.textBaseline=n.above?'bottom':'top';
-    ctx.fillStyle=`rgba(255,255,255,${dormant?(.30+lit*.5):(.56+lit*.44)})`;
+    ctx.fillStyle=`rgba(255,255,255,${dormant?(isMobile?.46:.30)+lit*.5:(isMobile?.78:.56)+lit*.22})`;
     ctx.save();try{ctx.letterSpacing='0.09em';}catch(_){}
     const lh=fs*1.24;
     const LN=nodeLines(n);
