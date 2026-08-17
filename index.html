@@ -143,7 +143,7 @@
   <div class="lang"><button data-l="es" class="on">ES</button><span>/</span><button data-l="en">EN</button></div>
   <div class="headline" id="headline">
     <h1>No sólo asesoramos compañías.<span>Las levantamos.</span></h1>
-    <p>Holding de participaciones en tecnología y servicio. Invertimos, construimos y asesoramos.</p>
+    <p>Holding de participaciones en tecnología y servicios. Invertimos, construimos y asesoramos.</p>
   </div>
   <noscript><div style="position:fixed;left:0;right:0;bottom:70px;text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7c7c85;z-index:9">Este prototipo necesita JavaScript · ábrelo en Safari o Chrome</div></noscript>
   <div class="hint" id="hint">Arrastra los nodos · R para recolocar</div>
@@ -259,7 +259,7 @@ const hexOf=c=>'#'+[c.r,c.g,c.b].map(v=>Math.round(v).toString(16).padStart(2,'0
 let LANG='es';
 const UI={
   es:{h1:'No sólo asesoramos compañías.',h2:'Las levantamos.',
-      sub:'Holding de participaciones en tecnología y servicio. Invertimos, construimos y asesoramos.',
+      sub:'Holding de participaciones en tecnología y servicios. Invertimos, construimos y asesoramos.',
       hint:'Arrastra los nodos · R para recolocar', legal:'Aviso legal y privacidad'},
   en:{h1:'We don’t just advise companies.',h2:'We build them.',
       sub:'Holding company with interests in technology and services. We invest, we build, we advise.',
@@ -319,9 +319,9 @@ const NODES=[
  {id:'andres',label:'ANDRÉS ROMERO',kind:'root',beat:.71,col:PAL.personal,kicker:'Fundador y socio',title:'Andrés Romero',
   body:'Abogado. Socio fundador de NewCo Capital y Desarrollo. General Partner y CLO en Technetium Ventures.',cta:null,
   en:{kicker:'Founder and partner',body:'Lawyer. Founding partner of NewCo Capital y Desarrollo. General Partner and CLO at Technetium Ventures.'}},
- {id:'ideas',label:'IDEAS',kind:'personal',parent:'andres',ang:158,beat:.94,col:PAL.personal,kicker:'Publicaciones',title:'Ideas',
-  body:'Reflexiones, notas y publicaciones.',cta:'Ver Ideas',
-  en:{kicker:'Writing',body:'Notes, essays and published pieces.',cta:'Read Ideas'}},
+ {id:'ideas',label:'BITÁCORA',kind:'personal',parent:'andres',ang:158,beat:.94,col:PAL.personal,kicker:'Publicaciones',title:'Bitácora',
+  body:'Reflexiones, notas y publicaciones.',href:'ideas.html',cta:'Ver la bitácora',
+  en:{label:'LOGBOOK',kicker:'Writing',title:'Logbook',body:'Notes, essays and published pieces.',cta:'Read the logbook'}},
  {id:'salmon',label:'QUIERO SER UN SALMÓN',lines:['QUIERO SER','UN SALMÓN'],kind:'personal',parent:'andres',ang:104,beat:.55,col:PAL.personal,kicker:'Libro',title:'Quiero ser un salmón',
   body:'Este libro, escrito para todas las edades por Andrés Romero, nos enseña a valorar las ventajas de la actitud emprendedora para que nuestros hijos conozcan que hay alternativas a vivir en una pecera.',href:'https://amzn.eu/d/00M608KQ',cta:'Comprar en Amazon',
   en:{kicker:'Book',body:'Written by Andrés Romero for readers of all ages, this book makes the case for an entrepreneurial mindset — so our children know there are alternatives to life in a fishbowl.',cta:'Buy on Amazon'}},
@@ -817,7 +817,8 @@ function ctaOf(node,sub){
   if(href){
     c.style.display='inline-flex'; c.textContent=label+' →'; c.className='p-cta'; c.href=href;
     if(href.indexOf('mailto:')===0){ c.removeAttribute('target'); }
-    else { c.target='_blank'; }                // externo: pestaña nueva
+    else if(href.indexOf('http')===0){ c.target='_blank'; }   // externo: pestaña nueva
+    else { c.removeAttribute('target'); }                     // interno: misma pestaña
   } else if(label){                          // destino aún por definir
     c.style.display='inline-flex'; c.textContent=label; c.className='p-cta ghost';
     c.removeAttribute('href'); c.removeAttribute('target');
